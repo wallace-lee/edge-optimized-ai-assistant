@@ -5,22 +5,43 @@ include:
   - ../../module/ipex-llm-ollama/docker-compose.yml
 
 services:
-  tts:
-    image: ghcr.io/matatonic/openedai-speech:latest
-    container_name: tts
+  #tts:
+  #  image: ghcr.io/matatonic/openedai-speech:latest
+  #  container_name: tts
+  #  restart: always
+  #  ports:
+  #    - "8002:8000"
+  #  environment:
+  #    - http_proxy=${http_proxy:-}
+  #    - https_proxy=${https_proxy:-}
+  #    - no_proxy=open-webui,localhost,127.0.0.1
+  #    - TTS_HOME=/app/voices
+  #    - HF_HOME=/app/hf_home
+  #  volumes:
+  #    - ./.cache/tts/voices:/app/voices
+  #    - ./.cache/tts/config:/app/config
+  #    - ./.cache/tts/hf_home:/app/hf_home
+  kokoro_tts:
+    build:
+      context: ./kokoro-tts
+      dockerfile: Dockerfile
+    image: tts_service
+    #hostname: tts_service
+    container_name: tts_service
     restart: always
-    ports:
-      - "8000:8000"
+    networks:
+      - app-network
     environment:
-      - http_proxy=${http_proxy:-}
-      - https_proxy=${https_proxy:-}
-      - no_proxy=open-webui,localhost,127.0.0.1
-      - TTS_HOME=/app/voices
-      - HF_HOME=/app/hf_home
+      - ALLOWED_CORS=["*"]
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8000
+    ports:
+      - 8000:8000
     volumes:
-      - ./.cache/tts/voices:/app/voices
-      - ./.cache/tts/config:/app/config
-      - ./.cache/tts/hf_home:/app/hf_home
+      - ./data/tts:/usr/src/app/models:rw
+      - ./data/audio:/usr/src/app/data:rw
+    command: python3 main.py      
+      
   open-webui:
     image: ghcr.io/open-webui/open-webui:v0.6.22
     container_name: open-webui
@@ -30,9 +51,10 @@ services:
     volumes:
       - ./.cache/open-webui:/app/backend/data
     environment:
+      - CORS_ALLOW_ORIGINS="*"
       - http_proxy=${http_proxy:-}
       - https_proxy=${https_proxy:-}
-      - no_proxy=stt,tts,ipex-llm-ollama,localhost,127.0.0.1
+      - no_proxy=stt,kokoro_tts,ipex-llm-ollama,localhost,127.0.0.1
       - OLLAMA_BASE_URL=http://ipex-llm-ollama:11434
       - AUDIO_STT_ENGINE=openai
       - AUDIO_STT_MODEL=whisper-1
@@ -40,10 +62,12 @@ services:
       - AUDIO_STT_OPENAI_API_KEY=no-need
       - AUDIO_TTS_ENGINE=openai
       - AUDIO_TTS_MODEL=tts-1
-      - AUDIO_TTS_OPENAI_API_BASE_URL=http://tts:8000/v1
+      - AUDIO_TTS_OPENAI_API_BASE_URL=http://kokoro_tts:8000/v1
       - AUDIO_TTS_OPENAI_API_KEY=no-need
       - AUDIO_TTS_SPLIT_ON=punctuation
-      - AUDIO_TTS_VOICE=echo
-
+      #- AUDIO_TTS_VOICE=
+    networks:
+     - app-network
 networks:
   app-network:
+    driver: bridge
