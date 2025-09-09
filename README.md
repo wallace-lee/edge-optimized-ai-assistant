@@ -84,9 +84,30 @@ cd edge-optimized-ai-assistant/app/kiosk
 * Profile > Settings > Admin Settings > Audio > *Response splitting*: Punctuation
 * (Optional) Profile > Settings > Interface > on *Chat Background Image*, click *Upload* to upload new background image
 
+### Kokoro-TTS config
+
+> Note: Kokoro Server is currently configure to support the following languages: EN, JA, ZH
+
+* Profile > Settings > Audio > SST Settings > *Instant Auto-Send After Voice Transcription*: On
+
+* Profile > Settings > Audio > TTS Settings > *Auto-playback response*: On
+
+* Profile > Settings > Audio > TTS Settings > *Voice*: [ **En**:  af_heart | am_echo |
+
+  ​										         **JA**: jf_nezumi | jm_kumo |
+
+  ​											 **ZH**: zf_xiaobei | zm_yunxi ]
+
+  > Note: 
+  >
+  > 1. Please enter the name of the voice of your preference (example given above) based on the language code. 
+  >
+  > 2. The example given is not an exhaustive list of voices supported by Kokoro. For more supported voices, please refer to the model card @ [HF](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md)
+
 ### Allow developer to treat HTTP as secure on Chrome browser
 
 1\. Launch Chrome browser and enter the follow in the address bar
+
 ```sh
 chrome://flags/#unsafely-treat-insecure-origin-as-secure
 ```
